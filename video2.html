@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>영상(2) 8주차 수업 의견</title>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#111;--sub:#8a8a8a;--line:#e3e3e3;--bg:#fafafa;
+        --good:#ffe27a;--want:#ffb8cb;--try:#a9dcff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Gothic A1",-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  /* tabs */
+  #tg{position:fixed;right:14px;bottom:12px;z-index:50;display:flex;gap:3px;padding:10px;border:0;background:transparent;cursor:pointer;opacity:.16;transition:opacity .3s}
+  #tg:hover{opacity:.85}
+  #tg i{width:5px;height:5px;border-radius:1px;display:block}
+  .view{display:none}
+  .view.on{display:block}
+
+  /* write */
+  .wrap{max-width:640px;margin:0 auto;padding:12vh 28px 14vh}
+  .tag{font-size:13px;color:var(--sub)}
+  h1{font-size:clamp(30px,6vw,46px);font-weight:700;letter-spacing:-.02em;margin:16px 0 12px}
+  .lead{font-size:15px;color:#555;line-height:1.7}
+  form{margin-top:6vh}
+  .q{padding:26px 0;border-top:1px solid var(--line)}
+  .num{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);letter-spacing:.1em}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+  label{display:block;font-size:18px;font-weight:700;margin:8px 0 14px;letter-spacing:-.01em}
+  .note-s{font-size:12px;color:var(--sub);font-weight:400;margin-left:6px}
+  input,textarea{width:100%;border:0;border-bottom:1.5px solid #cfcfcf;background:transparent;font:inherit;font-size:16px;line-height:1.7;padding:6px 0;color:var(--ink);outline:none;resize:none}
+  input:focus,textarea:focus{border-bottom-color:var(--ink)}
+  textarea{min-height:60px}
+  ::placeholder{color:#bdbdbd}
+  .foot{display:flex;align-items:center;gap:16px;margin-top:30px}
+  .send{font:inherit;font-size:15px;font-weight:700;border:0;background:var(--ink);color:#fff;padding:15px 32px;border-radius:999px;cursor:pointer}
+  .send:disabled{opacity:.25;cursor:default}
+  .msg{font-size:13px;color:var(--sub)}
+  .cnt{font-size:12px;color:#bdbdbd;text-align:right;margin-top:6px;font-variant-numeric:tabular-nums}
+  .cnt.full{color:var(--ink)}
+
+  /* wall */
+  #wall{position:fixed;inset:0;overflow:hidden;
+        background:#f4f1ec radial-gradient(rgba(0,0,0,.05) 1px,transparent 1px) 0 0/22px 22px}
+  #board{position:absolute;inset:0}
+  .slot{position:absolute;will-change:transform;transition:left .7s ease,top .7s ease;animation:drop .9s cubic-bezier(.2,1.4,.4,1) both}
+  .slot.bye{animation:none!important;opacity:0;transform:scale(.85) rotate(var(--r,0deg))!important;transition:opacity .45s ease,transform .45s ease;pointer-events:none}
+  @keyframes drop{
+    0%{opacity:0;transform:translate(var(--fx),-60px) scale(1.25) rotate(calc(var(--r) - 18deg))}
+    60%{opacity:1}
+    100%{opacity:1;transform:translate(0,0) scale(1) rotate(var(--r))}}
+  .note{width:var(--s);height:var(--s);padding:18px 16px 14px;border-radius:3px;cursor:pointer;
+        background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%),var(--c);
+        box-shadow:0 1px 1px rgba(0,0,0,.08),0 12px 22px -10px rgba(0,0,0,.28);
+        transform-origin:50% 0;animation:sway var(--d) ease-in-out var(--dl) infinite alternate;
+        display:flex;flex-direction:column;transition:box-shadow .3s}
+  .note:hover{box-shadow:0 2px 2px rgba(0,0,0,.08),0 20px 34px -12px rgba(0,0,0,.35)}
+  .note::before{content:"";position:absolute;top:-9px;left:50%;width:54px;height:18px;transform:translateX(-50%) rotate(-2deg);
+        background:rgba(255,255,255,.55);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  @keyframes sway{
+    0%{transform:rotate(-1.4deg) translateY(0) skewX(0deg)}
+    50%{transform:rotate(.6deg) translateY(-2px) skewX(-.6deg)}
+    100%{transform:rotate(1.6deg) translateY(1px) skewX(.4deg)}}
+  .note .k{font-size:10px;letter-spacing:.12em;opacity:.55;font-weight:700;margin-bottom:8px}
+  .note .v{font-size:var(--fs);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap}
+  .slot.off{opacity:0 !important;pointer-events:none;transition:opacity .4s}
+
+  .legend{position:fixed;left:24px;bottom:22px;z-index:40;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font:inherit;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.85);backdrop-filter:blur(8px);padding:9px 14px;border-radius:999px;cursor:pointer;transition:.2s}
+  .chip i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .chip.mute{opacity:.35}
+  .chip b{font-weight:400;color:var(--sub)}
+  .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:15px}
+
+  /* zoom */
+  #zoom{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(20,20,20,.35);backdrop-filter:blur(3px)}
+  #zoom.on{display:flex}
+  #zoom .big{width:min(440px,86vw);min-height:min(440px,86vw);padding:34px 30px;border-radius:4px;box-shadow:0 30px 60px -20px rgba(0,0,0,.45);animation:pop .35s cubic-bezier(.2,1.3,.4,1)}
+  #zoom .k{font-size:11px;letter-spacing:.12em;opacity:.55;font-weight:700;margin-bottom:14px}
+  #zoom .v{font-size:19px;line-height:1.6;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+  @keyframes pop{from{transform:scale(.85) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<button id="tg" type="button" aria-label="view"><i style="background:var(--good)"></i><i style="background:var(--want)"></i><i style="background:var(--try)"></i></button>
+
+<section class="view on" id="v1">
+  <div class="wrap">
+    <div class="tag">영상(2)</div>
+    <h1>8주차 수업 의견</h1>
+    <p class="lead">지난 8주의 수업을 돌아보며 여러분의 생각을 듣고자 합니다.<br>아래 질문에 편하게 답해 주세요.</p>
+    <form id="f" autocomplete="off">
+      <div class="q"><div class="num">01</div><label for="name">이름</label>
+        <input id="name" maxlength="20"></div>
+      <div class="q"><div class="num"><span class="dot" style="background:var(--good)"></span>02</div><label for="good">지금까지 수업에서 좋았던 점은?</label>
+        <textarea id="good" maxlength="100"></textarea><div class="cnt" data-for="good">0 / 100</div></div>
+      <div class="q"><div class="num"><span class="dot" style="background:var(--want)"></span>03</div><label for="want">남은 수업에서 원하는 점은?</label>
+        <textarea id="want" maxlength="100"></textarea><div class="cnt" data-for="want">0 / 100</div></div>
+      <div class="q"><div class="num"><span class="dot" style="background:var(--try)"></span>04</div><label for="tryIt">개인적으로 시도해 보고 싶은 작업이나 방향은?</label>
+        <textarea id="tryIt" maxlength="100"></textarea><div class="cnt" data-for="tryIt">0 / 100</div></div>
+      <div class="foot"><button class="send" id="b" type="submit" disabled>제출</button><span class="msg" id="m"></span></div>
+    </form>
+  </div>
+</section>
+
+<section class="view" id="v2">
+  <div id="wall"><div id="board"></div></div>
+  <div class="legend">
+    <button class="chip" data-k="good"><i style="background:var(--good)"></i>좋았던 점 <b id="cg">0</b></button>
+    <button class="chip" data-k="want"><i style="background:var(--want)"></i>원하는 점 <b id="cw">0</b></button>
+    <button class="chip" data-k="tryIt"><i style="background:var(--try)"></i>시도하고 싶은 점 <b id="ct">0</b></button>
+  </div>
+</section>
+
+<div id="zoom"><div class="big"><div class="k"></div><div class="v"></div></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KINDS=[{k:'good',label:'좋았던 점',c:'var(--good)'},{k:'want',label:'원하는 점',c:'var(--want)'},{k:'tryIt',label:'시도하고 싶은 점',c:'var(--try)'}];
+const ids=['name','good','want','tryIt'];
+let data=[], shown=new Set(), hidden=new Set(), lastW=0, lastH=0, lastSig='';
+
+/* tabs */
+function tab(n){
+  $('v1').classList.toggle('on',n===1); $('v2').classList.toggle('on',n===2); if(n===2) layout(true); }
+$('tg').onclick=()=>tab($('v1').classList.contains('on')?2:1);
+addEventListener('keydown',e=>{ if(e.target.matches('input,textarea')) return; if(e.key==='w'||e.key==='W') tab(2); if(e.key==='q'||e.key==='Q') tab(1); });
+
+/* form */
+const b=$('b'), m=$('m');
+function check(){ b.disabled=!ids.every(i=>$(i).value.trim()); }
+function cnt(){ document.querySelectorAll('.cnt').forEach(c=>{const n=$(c.dataset.for).value.length; c.textContent=n+' / 100'; c.classList.toggle('full',n>=100);}); }
+ids.forEach(i=>$(i).addEventListener('input',e=>{check(); cnt(); const t=e.target; if(t.tagName==='TEXTAREA'){t.style.height='auto';t.style.height=t.scrollHeight+'px';}}));
+$('f').addEventListener('submit',e=>{
+  e.preventDefault(); b.disabled=true; m.textContent='보내는 중';
+  const d={}; ids.forEach(i=>d[i]=$(i).value);
+  apiSubmit(d).then(list=>{
+      ids.forEach(i=>{$(i).value='';$(i).style.height='';}); m.textContent=''; check(); cnt(); data=list; tab(2);
+    }).catch(err=>{ m.textContent=(err&&err.message)||'다시 시도해 주세요.'; check(); });
+});
+
+/* api: 로그인 상태와 무관한 공개 요청 */
+const API='https://script.google.com/macros/s/AKfycbzXbLqI-8VxaxaK9qo1Xi-i64438PEW-nDA4wxr3kZISqcs7GStWG9JwWyOTu73UXlXoA/exec';
+function apiJson(r){ return r.json().then(j=>{ if(!j.ok) throw new Error(j.error||'다시 시도해 주세요.'); return j.list; }); }
+function gsr(fn,d){ return new Promise((res,rej)=>{ try{ const g=google.script.run.withSuccessHandler(res).withFailureHandler(rej); d===undefined?g[fn]():g[fn](d); }catch(e){ rej(e); } }); }
+function apiList(){ return fetch(API+'?api=list&t='+Date.now(),{credentials:'omit',cache:'no-store'}).then(apiJson).catch(()=>gsr('list')); }
+function apiSubmit(d){ return fetch(API,{method:'POST',credentials:'omit',body:JSON.stringify(d)}).then(apiJson); }
+
+/* seeded random */
+function rng(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return ()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return ((h^=h>>>16)>>>0)/4294967296;}; }
+
+function notes(){ const out=[]; data.forEach(r=>KINDS.forEach(K=>{ if(r[K.k]) out.push({key:r.id+'|'+K.k,kind:K,text:r[K.k]}); })); return out; }
+
+function layout(force){
+  const board=$('board'), W=innerWidth, H=innerHeight, all=notes(), list=all.filter(n=>!hidden.has(n.kind.k));
+  ['good','want','tryIt'].forEach((k,i)=>$(['cg','cw','ct'][i]).textContent=all.filter(n=>n.kind.k===k).length);
+  if(!$('v2').classList.contains('on')) return;
+  const sig=all.map(n=>n.key+'\u0001'+n.text).join('\u0002');
+  if(!force && W===lastW && H===lastH && sig===lastSig) return;
+  lastW=W; lastH=H; lastSig=sig;
+  if(!all.length){ board.innerHTML='<div class="empty">아직 올라온 의견이 없습니다.</div>'; return; }
+  const top=80, bottom=70, aw=W-40, ah=H-top-bottom, N=Math.max(list.length,1);
+  const s=Math.max(120,Math.min(230,Math.sqrt(aw*ah/N)*0.82));
+  const cols=Math.max(1,Math.floor(aw/(s*0.92))), rows=Math.ceil(N/cols);
+  const cw=aw/cols, ch=Math.max(ah/rows,s*0.75);
+  const order=list.slice().sort((a,b)=>rng(a.key)()-rng(b.key)());
+  const keep=new Set(order.map(n=>n.key));
+  [...board.querySelectorAll('.slot:not(.bye)')].forEach(el=>{ if(!keep.has(el.dataset.key)){ el.classList.add('bye'); setTimeout(()=>el.remove(),500); } });
+  board.querySelector('.empty')&&board.querySelector('.empty').remove();
+  let fresh=0;
+  order.forEach((n,i)=>{
+    const R=rng(n.key), c=i%cols, r=Math.floor(i/cols);
+    const x=20+c*cw+(cw-s)/2+(R()-.5)*cw*0.55, y=top+r*ch+(ch-s)/2+(R()-.5)*ch*0.5;
+    const rot=(R()-.5)*14;
+    let el=board.querySelector('.slot:not(.bye)[data-key="'+CSS.escape(n.key)+'"]');
+    if(!el){
+      el=document.createElement('div'); el.className='slot'; el.dataset.key=n.key;
+      const note=document.createElement('div'); note.className='note';
+      const k=document.createElement('div'); k.className='k'; k.textContent=n.kind.label;
+      const v=document.createElement('div'); v.className='v'; v.textContent=n.text;
+      note.append(k,v); el.appendChild(note); board.appendChild(el);
+      note.onclick=()=>zoom(n);
+      const isNew=!shown.has(n.key); shown.add(n.key);
+      el.style.animationDelay=(isNew? (fresh++)*0.07 : 0)+'s';
+      if(!isNew) el.style.animation='none';
+      note.style.setProperty('--d',(4+R()*3).toFixed(2)+'s');
+      note.style.setProperty('--dl',(-R()*6).toFixed(2)+'s');
+      note.style.setProperty('--c',n.kind.c);
+    }
+    el.style.left=Math.max(8,Math.min(W-s-8,x))+'px'; el.style.top=Math.max(top-10,Math.min(H-s-bottom+30,y))+'px';
+    el.style.setProperty('--r',rot.toFixed(2)+'deg'); el.style.setProperty('--fx',((R()-.5)*80).toFixed(0)+'px');
+    if(el.style.animation==='none') el.style.transform='rotate('+rot.toFixed(2)+'deg)';
+    const note=el.firstChild; note.style.setProperty('--s',s.toFixed(0)+'px');
+    const vt=note.querySelector('.v'); if(vt.textContent!==n.text) vt.textContent=n.text; note.onclick=()=>zoom(n);
+    const fs=s<150?12:s<190?13:14; note.style.setProperty('--fs',fs+'px');
+    note.style.setProperty('--lines',Math.max(3,Math.floor((s-58)/(fs*1.5))));
+  });
+}
+function zoom(n){ const z=$('zoom'), big=z.querySelector('.big'); big.style.background=n.kind.c;
+  big.querySelector('.k').textContent=n.kind.label; big.querySelector('.v').textContent=n.text; z.classList.add('on'); }
+$('zoom').onclick=()=>$('zoom').classList.remove('on');
+
+document.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{ const k=ch.dataset.k;
+  hidden.has(k)?hidden.delete(k):hidden.add(k); ch.classList.toggle('mute',hidden.has(k)); layout(true); });
+
+let rt; addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>layout(true),200);});
+let busy=false, lastLoad=0;
+function load(){ if(busy) return; busy=true; lastLoad=Date.now();
+  apiList().then(list=>{ busy=false; data=list; layout(false); }).catch(()=>{ busy=false; }); }
+load();
+setInterval(()=>{ if(document.hidden) return; const wall=$('v2').classList.contains('on');
+  if(Date.now()-lastLoad >= (wall?3000:30000)) load(); },1000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(); });
+</script>
+</body>
+</html>
