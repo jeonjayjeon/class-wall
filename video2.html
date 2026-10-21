@@ -39,8 +39,9 @@
   .send{font:inherit;font-size:15px;font-weight:700;border:0;background:var(--ink);color:#fff;padding:15px 32px;border-radius:999px;cursor:pointer}
   .send:disabled{opacity:.25;cursor:default}
   .msg{font-size:13px;color:var(--sub)}
-  .cnt{font-size:12px;color:#bdbdbd;text-align:right;margin-top:6px;font-variant-numeric:tabular-nums}
-  .cnt.full{color:var(--ink)}
+  .cnt{font-size:12px;color:#d4d4d4;text-align:right;margin-top:8px;font-variant-numeric:tabular-nums;transition:color .25s}
+  .cnt b{font-weight:700;transition:color .25s}
+  .fill{height:1.5px;background:var(--ink);width:0;margin-top:-1.5px;position:relative;transition:width .3s ease,opacity .3s ease;opacity:.15}
 
   /* wall */
   #wall{position:fixed;inset:0;overflow:hidden;
@@ -94,13 +95,13 @@
     <p class="lead">지난 8주의 수업을 돌아보며 여러분의 생각을 듣고자 합니다.<br>아래 질문에 편하게 답해 주세요.</p>
     <form id="f" autocomplete="off">
       <div class="q"><div class="num">01</div><label for="name">이름</label>
-        <input id="name" maxlength="20"></div>
+        <input id="name" maxlength="20" required></div>
       <div class="q"><div class="num">02</div><label for="good">지금까지 우리 수업에서 좋았던 점이 있나요?</label>
-        <textarea id="good" maxlength="100"></textarea><div class="cnt" data-for="good">0 / 100</div></div>
+        <textarea id="good" maxlength="100" required></textarea><div class="fill" data-for="good"></div><div class="cnt" data-for="good"><b>0</b> / 100</div></div>
       <div class="q"><div class="num">03</div><label for="want">남은 수업에서 원하는 점이 있나요?</label>
-        <textarea id="want" maxlength="100"></textarea><div class="cnt" data-for="want">0 / 100</div></div>
+        <textarea id="want" maxlength="100" required></textarea><div class="fill" data-for="want"></div><div class="cnt" data-for="want"><b>0</b> / 100</div></div>
       <div class="q"><div class="num">04</div><label for="tryIt">개인적으로 시도해 보고 싶은 작업이나 방향이 있나요?</label>
-        <textarea id="tryIt" maxlength="100"></textarea><div class="cnt" data-for="tryIt">0 / 100</div></div>
+        <textarea id="tryIt" maxlength="100" required></textarea><div class="fill" data-for="tryIt"></div><div class="cnt" data-for="tryIt"><b>0</b> / 100</div></div>
       <div class="foot"><button class="send" id="b" type="submit" disabled>제출</button><span class="msg" id="m"></span></div>
     </form>
   </div>
@@ -132,7 +133,10 @@ addEventListener('keydown',e=>{ if(e.target.matches('input,textarea')) return; i
 /* form */
 const b=$('b'), m=$('m');
 function check(){ b.disabled=!ids.every(i=>$(i).value.trim()); }
-function cnt(){ document.querySelectorAll('.cnt').forEach(c=>{const n=$(c.dataset.for).value.length; c.textContent=n+' / 100'; c.classList.toggle('full',n>=100);}); }
+function shade(p){ const v=Math.round(212-(212-17)*p); return 'rgb('+v+','+v+','+v+')'; }
+function cnt(){ document.querySelectorAll('.cnt').forEach(c=>{const n=$(c.dataset.for).value.length, p=Math.min(n/100,1), e=Math.pow(p,.7);
+  c.innerHTML='<b>'+n+'</b> / 100'; c.firstChild.style.color=shade(e); c.style.color=shade(e*.55);
+  const fl=document.querySelector('.fill[data-for="'+c.dataset.for+'"]'); if(fl){ fl.style.width=(p*100)+'%'; fl.style.opacity=(.15+.85*e).toFixed(2); } }); }
 ids.forEach(i=>$(i).addEventListener('input',e=>{check(); cnt(); const t=e.target; if(t.tagName==='TEXTAREA'){t.style.height='auto';t.style.height=t.scrollHeight+'px';}}));
 $('f').addEventListener('submit',e=>{
   e.preventDefault(); b.disabled=true; m.textContent='보내는 중';
