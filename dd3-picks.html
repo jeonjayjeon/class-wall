@@ -14,7 +14,7 @@
   #board{position:relative;background:#f4f1ec radial-gradient(rgba(0,0,0,.05) 1px,transparent 1px) 0 0/22px 22px;overflow:hidden}
   .st{position:absolute;transform-origin:50% 0;opacity:0;will-change:transform}
   .note{width:100%;height:100%;border-radius:3px;position:relative;
-        padding:9% 8% 7%;display:flex;flex-direction:column;
+        padding:9% 10% 7%;display:flex;flex-direction:column;
         background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%),var(--c);
         box-shadow:0 1px 1px rgba(0,0,0,.08),0 18px 30px -14px rgba(0,0,0,.35)}
   .note::before{content:"";position:absolute;top:-14px;left:50%;width:30%;height:28px;transform:translateX(-50%) rotate(-2deg);
@@ -70,8 +70,8 @@ function size(){
 function slotsFor(n){
   const rows=2, perRow=[Math.ceil(n/2), Math.floor(n/2)], ch=H/rows, out=[];
   perRow.forEach((cnt,r)=>{ const cw=W/cnt;
-    for(let c=0;c<cnt;c++){ const w=cw*1.1, h=ch*1.12;
-      out.push({x:c*cw-(w-cw)/2+rnd(-.03,.03)*cw, y:(r===0? -ch*.01+rnd(0,.02)*ch : ch*.95+rnd(-.02,.02)*ch), w, h, rot:rnd(-4,4)}); } });
+    for(let c=0;c<cnt;c++){ const w=cw*1.05, h=ch*1.12;
+      out.push({x:c*cw-(w-cw)/2+rnd(-.015,.015)*cw, y:(r===0? -ch*.01+rnd(0,.02)*ch : ch*.95+rnd(-.02,.02)*ch), w, h, rot:rnd(-4,4)}); } });
   return out;
 }
 function make(item,p){
