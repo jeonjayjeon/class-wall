@@ -71,7 +71,7 @@ function slotsFor(n){
   const rows=2, perRow=[Math.ceil(n/2), Math.floor(n/2)], ch=H/rows, out=[];
   perRow.forEach((cnt,r)=>{ const cw=W/cnt;
     for(let c=0;c<cnt;c++){ const w=cw*1.05, h=ch*1.12;
-      out.push({x:c*cw-(w-cw)/2+rnd(-.015,.015)*cw, y:(r===0? -ch*.01+rnd(0,.02)*ch : ch*.95+rnd(-.02,.02)*ch), w, h, rot:rnd(-4,4)}); } });
+      out.push({row:r, x:c*cw-(w-cw)/2+rnd(-.015,.015)*cw, y:(r===0? -ch*.01+rnd(0,.02)*ch : ch*.95+rnd(-.02,.02)*ch), w, h, rot:rnd(-4,4)}); } });
   return out;
 }
 function make(item,p){
@@ -96,7 +96,7 @@ async function batch(items){
   const els=items.map((it,i)=>{ const el=make(it,P[i]); fit(el); return el; });
   // 1. 우다다 붙기 (1초 안에)
   const step=(T_IN-560)/Math.max(1,items.length-1);
-  await Promise.all(order.map((i,j)=>{ const el=els[i], p=P[i]; el.style.zIndex=10+j;
+  await Promise.all(order.map((i,j)=>{ const el=els[i], p=P[i]; el.style.zIndex=10+p.row*100+j;
     return el.animate([
       {opacity:0, transform:`translate(${rnd(-40,40)}px,-${H*.12}px) scale(1.18) rotate(${p.rot+rnd(-14,14)}deg)`},
       {opacity:1, offset:.6, transform:`translate(0,4px) scale(.99) rotate(${p.rot+rnd(-1,1)}deg)`},
