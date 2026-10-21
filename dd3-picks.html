@@ -71,7 +71,7 @@ function slotsFor(n){
   const rows=2, perRow=[Math.ceil(n/2), Math.floor(n/2)], ch=H/rows, out=[];
   perRow.forEach((cnt,r)=>{ const cw=W/cnt;
     for(let c=0;c<cnt;c++){ const w=cw*1.1, h=ch*1.12;
-      out.push({x:c*cw-(w-cw)/2+rnd(-.03,.03)*cw, y:r*ch-(h-ch)/2+rnd(-.03,.03)*ch+(r===0?-ch*.02:ch*.02), w, h, rot:rnd(-4,4)}); } });
+      out.push({x:c*cw-(w-cw)/2+rnd(-.03,.03)*cw, y:(r===0? -ch*.01+rnd(0,.02)*ch : ch*.95+rnd(-.02,.02)*ch), w, h, rot:rnd(-4,4)}); } });
   return out;
 }
 function make(item,p){
