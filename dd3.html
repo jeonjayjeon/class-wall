@@ -203,10 +203,7 @@ function layout(force){
       note.style.setProperty('--dl',(-R()*6).toFixed(2)+'s');
       note.style.setProperty('--c',n.kind.c);
     }
-    const P=posMap[n.key];
-    if(!el.classList.contains('drag')){
-      if(P){ el.style.left=Math.max(-s*.5,Math.min(W-s*.5,P.x*W))+'px'; el.style.top=Math.max(-s*.3,Math.min(H-s*.3,P.y*H))+'px'; el.style.zIndex=P.z; }
-      else { el.style.left=Math.max(6,Math.min(W-s-6,x))+'px'; el.style.top=Math.max(top-30,Math.min(H-s*.88,y))+'px'; } }
+    if(!el.classList.contains('drag')){ el.style.left=Math.max(6,Math.min(W-s-6,x))+'px'; el.style.top=Math.max(top-30,Math.min(H-s*.88,y))+'px'; }
     el.style.setProperty('--r',rot.toFixed(2)+'deg'); el.style.setProperty('--fx',((R()-.5)*80).toFixed(0)+'px');
     if(el.style.animation==='none') el.style.transform='rotate('+rot.toFixed(2)+'deg)';
     const note=el.firstChild; note.style.setProperty('--s',s.toFixed(0)+'px');
@@ -230,16 +227,19 @@ function moveKey(key,idx){ const cur=G.keys.indexOf(key); if(cur<0||cur===idx) r
   const target=G.keys[idx]; const fk=fullKeys.filter(k=>k!==key); let at=fk.indexOf(target); if(idx>cur) at+=1;
   fk.splice(at,0,key); fullKeys=fk; saveOrder(); return true; }
 function dragify(el,note){
-  let sx=0,sy=0,ox=0,oy=0,on=false,id=null;
+  let sx=0,sy=0,ox=0,oy=0,on=false,id=null,snap=null,snapVis=null,tgt=-1;
   note.addEventListener('pointerdown',e=>{ if(e.button>0) return; id=e.pointerId; sx=e.clientX; sy=e.clientY;
     ox=sx-el.offsetLeft; oy=sy-el.offsetTop; on=false; note.setPointerCapture(id); el.style.zIndex=++zTop; });
   note.addEventListener('pointermove',e=>{ if(e.pointerId!==id) return;
-    if(!on){ if(Math.hypot(e.clientX-sx,e.clientY-sy)<6) return; on=true; el.classList.add('drag'); el.style.animation='none'; }
-    el.style.left=(e.clientX-ox)+'px'; el.style.top=(e.clientY-oy)+'px'; });
+    if(!on){ if(Math.hypot(e.clientX-sx,e.clientY-sy)<6) return; on=true; el.classList.add('drag'); el.style.animation='none';
+      snap=fullKeys.slice(); snapVis=G.keys.slice(); tgt=snapVis.indexOf(el.dataset.key); }
+    el.style.left=(e.clientX-ox)+'px'; el.style.top=(e.clientY-oy)+'px';
+    const w=note.offsetWidth, idx=slotAt(e.clientX-ox+w/2, e.clientY-oy+w/2);
+    if(idx!==tgt){ tgt=idx; const key=el.dataset.key, other=snapVis[idx], fk=snap.slice();
+      if(other && other!==key){ const i=fk.indexOf(key), j=fk.indexOf(other); fk[i]=other; fk[j]=key; }
+      fullKeys=fk; custom=fk; layout(true); } });
   const end=e=>{ if(e.pointerId!==id) return; id=null; if(!on) return; on=false; justDragged=true; setTimeout(()=>justDragged=false,80);
-    el.classList.remove('drag');
-    posMap[el.dataset.key]={x:el.offsetLeft/innerWidth, y:el.offsetTop/innerHeight, z:zTop}; savePos(); el.style.zIndex=zTop;
-    el.style.transform='rotate('+(el.style.getPropertyValue('--r')||'0deg')+')'; };
+    el.classList.remove('drag'); saveOrder(); layout(true); };
   note.addEventListener('pointerup',end); note.addEventListener('pointercancel',end);
 }
 function zoom(n){ const z=$('zoom'), big=z.querySelector('.big'); big.style.background=n.kind.c;
