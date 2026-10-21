@@ -174,7 +174,7 @@ function layout(force){
   const top=80, bottom=70, aw=W-40, ah=H-top-bottom, N=Math.max(list.length,1);
   const r0=Math.max(1,Math.min(N,Math.round(Math.sqrt(N*ah/aw*1.1)))), cols=Math.ceil(N/r0), rows=Math.ceil(N/cols);
   const cw=aw/cols, ch=ah/rows;
-  const s=Math.max(170,Math.min(400,Math.max(cw,ch)*1.22));
+  const s=Math.max(160,Math.min(400,Math.max(cw,ch)*1.02));
   const base=all.slice().sort((a,b)=>rng(a.key)()-rng(b.key)()), pos=new Map(custom.map((k,i)=>[k,i]));
   const full=base.slice().sort((a,b)=>(pos.has(a.key)?pos.get(a.key):1e6)-(pos.has(b.key)?pos.get(b.key):1e6));
   fullKeys=full.map(n=>n.key);
