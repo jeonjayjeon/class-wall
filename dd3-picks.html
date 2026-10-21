@@ -69,7 +69,8 @@ function size(){
   // 6 x 4 격자, 마지막 줄은 가운데 정렬
   const N=ITEMS.length, cols=6, rows=Math.ceil(N/cols), cw=W/cols, ch=H/rows, s=Math.min(cw,ch)*1.06, R=rng(7);
   slots=ITEMS.map((_,i)=>{ const r=Math.floor(i/cols), c=i%cols, nr=(r<rows-1?cols:N-cols*(rows-1)), cwr=W/nr;
-    return {x:c*cwr+(cwr-s)/2+(R()-.5)*cwr*.22, y:r*ch+(ch-s)/2+(R()-.5)*ch*.22, s, rot:(R()-.5)*12}; });
+    const x=c*cwr+(cwr-s)/2+(R()-.5)*cwr*.22, y=r*ch+(ch-s)/2+(R()-.5)*ch*.22;
+    return {x:Math.max(W*.005,Math.min(W-s*1.01,x)), y:Math.max(H*.02,Math.min(H-s*1.02,y)), s, rot:(R()-.5)*12}; });
   els.forEach((el,i)=>place(el,i));
 }
 function place(el,i){ const p=slots[i]; el.style.left=p.x+'px'; el.style.top=p.y+'px'; el.style.width=p.s+'px'; el.style.height=p.s+'px';
