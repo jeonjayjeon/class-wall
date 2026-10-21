@@ -69,7 +69,7 @@
   .note .k{font-size:10px;letter-spacing:.12em;opacity:.55;font-weight:700;margin-bottom:8px}
   .note .v{font-size:var(--fs);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap}
   .note{touch-action:none;user-select:none;-webkit-user-select:none}
-  .slot.drag{transition:none!important;animation:none!important;z-index:60;transform:rotate(0deg) scale(1.06)!important}
+  .slot.drag{transition:none!important;animation:none!important;z-index:9999!important;transform:rotate(0deg) scale(1.06)!important}
   .slot.drag .note{animation:none;cursor:grabbing;box-shadow:0 4px 6px rgba(0,0,0,.08),0 30px 50px -14px rgba(0,0,0,.4)}
   .slot.off{opacity:0 !important;pointer-events:none;transition:opacity .4s}
 
@@ -203,7 +203,10 @@ function layout(force){
       note.style.setProperty('--dl',(-R()*6).toFixed(2)+'s');
       note.style.setProperty('--c',n.kind.c);
     }
-    if(!el.classList.contains('drag')){ el.style.left=Math.max(6,Math.min(W-s-6,x))+'px'; el.style.top=Math.max(top-30,Math.min(H-s*.88,y))+'px'; }
+    const P=posMap[n.key];
+    if(!el.classList.contains('drag')){
+      if(P){ el.style.left=Math.max(-s*.5,Math.min(W-s*.5,P.x*W))+'px'; el.style.top=Math.max(-s*.3,Math.min(H-s*.3,P.y*H))+'px'; el.style.zIndex=P.z; }
+      else { el.style.left=Math.max(6,Math.min(W-s-6,x))+'px'; el.style.top=Math.max(top-30,Math.min(H-s*.88,y))+'px'; } }
     el.style.setProperty('--r',rot.toFixed(2)+'deg'); el.style.setProperty('--fx',((R()-.5)*80).toFixed(0)+'px');
     if(el.style.animation==='none') el.style.transform='rotate('+rot.toFixed(2)+'deg)';
     const note=el.firstChild; note.style.setProperty('--s',s.toFixed(0)+'px');
@@ -214,7 +217,11 @@ function layout(force){
 }
 /* drag: 끌어서 위치 바꾸기 (이 브라우저에 저장) */
 const OKEY='wallOrder:'+location.pathname;
-let custom=[], fullKeys=[], G=null, justDragged=false;
+let custom=[], fullKeys=[], G=null, justDragged=false, posMap={}, zTop=10;
+const PKEY='wallPos:'+location.pathname;
+try{ posMap=JSON.parse(localStorage.getItem(PKEY)||'{}')||{}; }catch(e){ posMap={}; }
+Object.values(posMap).forEach(p=>{ if(p.z>zTop) zTop=p.z; });
+function savePos(){ try{ localStorage.setItem(PKEY,JSON.stringify(posMap)); }catch(e){} }
 try{ custom=JSON.parse(localStorage.getItem(OKEY)||'[]')||[]; }catch(e){ custom=[]; }
 function saveOrder(){ custom=fullKeys.slice(); try{ localStorage.setItem(OKEY,JSON.stringify(custom)); }catch(e){} }
 function slotAt(px,py){ if(!G) return 0; const r=Math.max(0,Math.min(G.rows-1,Math.floor((py-G.top)/G.ch))), nr=(r<G.rows-1?G.cols:G.N-G.cols*(G.rows-1));
@@ -225,14 +232,14 @@ function moveKey(key,idx){ const cur=G.keys.indexOf(key); if(cur<0||cur===idx) r
 function dragify(el,note){
   let sx=0,sy=0,ox=0,oy=0,on=false,id=null;
   note.addEventListener('pointerdown',e=>{ if(e.button>0) return; id=e.pointerId; sx=e.clientX; sy=e.clientY;
-    ox=sx-el.offsetLeft; oy=sy-el.offsetTop; on=false; note.setPointerCapture(id); });
+    ox=sx-el.offsetLeft; oy=sy-el.offsetTop; on=false; note.setPointerCapture(id); el.style.zIndex=++zTop; });
   note.addEventListener('pointermove',e=>{ if(e.pointerId!==id) return;
     if(!on){ if(Math.hypot(e.clientX-sx,e.clientY-sy)<6) return; on=true; el.classList.add('drag'); el.style.animation='none'; }
-    el.style.left=(e.clientX-ox)+'px'; el.style.top=(e.clientY-oy)+'px';
-    const w=note.offsetWidth, idx=slotAt(e.clientX-ox+w/2, e.clientY-oy+w/2);
-    if(moveKey(el.dataset.key,idx)) layout(true); });
+    el.style.left=(e.clientX-ox)+'px'; el.style.top=(e.clientY-oy)+'px'; });
   const end=e=>{ if(e.pointerId!==id) return; id=null; if(!on) return; on=false; justDragged=true; setTimeout(()=>justDragged=false,80);
-    el.classList.remove('drag'); layout(true); };
+    el.classList.remove('drag');
+    posMap[el.dataset.key]={x:el.offsetLeft/innerWidth, y:el.offsetTop/innerHeight, z:zTop}; savePos(); el.style.zIndex=zTop;
+    el.style.transform='rotate('+(el.style.getPropertyValue('--r')||'0deg')+')'; };
   note.addEventListener('pointerup',end); note.addEventListener('pointercancel',end);
 }
 function zoom(n){ const z=$('zoom'), big=z.querySelector('.big'); big.style.background=n.kind.c;
