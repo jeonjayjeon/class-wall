@@ -211,7 +211,7 @@ function layout(force){
     const note=el.firstChild; note.style.setProperty('--w',s.toFixed(0)+'px'); note.style.setProperty('--h',sh.toFixed(0)+'px');
     note.querySelector('.no').textContent='S#'+String(i+1).padStart(2,'0');
     const vt=note.querySelector('.v'); if(vt.textContent!==n.text) vt.textContent=n.text; note.onclick=()=>{ if(justDragged) return; zoom(n); };
-    const fs=Math.round(Math.min(17,Math.max(12,s/24))), lh=Math.round(fs*1.62), hd=Math.round(Math.max(30,sh*0.2));
+    const fs=Math.round(Math.min(19,Math.max(13,s/19))), lh=Math.round(fs*1.62), hd=Math.round(Math.max(30,sh*0.2));
     note.style.setProperty('--fs',fs+'px'); note.style.setProperty('--lh',lh+'px'); note.style.setProperty('--hd',hd+'px');
     note.style.setProperty('--lines',Math.max(3,Math.floor((sh-hd-12)/lh)));
   });
