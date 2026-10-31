@@ -154,9 +154,12 @@ $('f').addEventListener('submit',e=>{
 
 /* api: 로그인 상태와 무관한 공개 요청 */
 const API='https://script.google.com/macros/s/AKfycbzXbLqI-8VxaxaK9qo1Xi-i64438PEW-nDA4wxr3kZISqcs7GStWG9JwWyOTu73UXlXoA/exec';
-function apiJson(r){ return r.json().then(j=>{ if(!j.ok) throw new Error(j.error||'다시 시도해 주세요.'); return j.list; }); }
+let srvOrder=null, srvOv=-1, dragging=false;
+function takeOrder(j){ if(j && j.ov!==undefined && j.ov!==srvOv){ srvOv=j.ov; srvOrder=Array.isArray(j.order)?j.order:[]; if(!dragging){ custom=srvOrder.slice(); return true; } } return false; }
+function apiJson(r){ return r.json().then(j=>{ if(!j.ok) throw new Error(j.error||'다시 시도해 주세요.'); takeOrder(j); return j.list; }); }
 function gsr(fn,d){ return new Promise((res,rej)=>{ try{ const g=google.script.run.withSuccessHandler(res).withFailureHandler(rej); d===undefined?g[fn]():g[fn](d); }catch(e){ rej(e); } }); }
 function apiList(){ return fetch(API+'?api=list&t='+Date.now(),{credentials:'omit',cache:'no-store'}).then(apiJson).catch(()=>gsr('list')); }
+function apiOrder(d){ return fetch(API,{method:'POST',credentials:'omit',body:JSON.stringify(d)}).then(r=>r.json()).then(j=>{ if(j.ok && takeOrder(j)) layout(true); }).catch(()=>{}); }
 function apiSubmit(d){ return fetch(API,{method:'POST',credentials:'omit',body:JSON.stringify(d)}).then(apiJson); }
 
 /* seeded random */
@@ -216,15 +219,14 @@ function layout(force){
     note.style.setProperty('--lines',Math.max(3,Math.floor((sh-hd-12)/lh)));
   });
 }
-/* drag: 끌어서 위치 바꾸기 (이 브라우저에 저장) */
+/* drag: 끌어서 위치 바꾸기 (모든 화면에 공유) */
 const OKEY='wallOrder:'+location.pathname;
 let custom=[], fullKeys=[], G=null, justDragged=false, posMap={}, zTop=10;
 const PKEY='wallPos:'+location.pathname;
 try{ posMap=JSON.parse(localStorage.getItem(PKEY)||'{}')||{}; }catch(e){ posMap={}; }
 Object.values(posMap).forEach(p=>{ if(p.z>zTop) zTop=p.z; });
 function savePos(){ try{ localStorage.setItem(PKEY,JSON.stringify(posMap)); }catch(e){} }
-try{ custom=JSON.parse(localStorage.getItem(OKEY)||'[]')||[]; }catch(e){ custom=[]; }
-function saveOrder(){ custom=fullKeys.slice(); try{ localStorage.setItem(OKEY,JSON.stringify(custom)); }catch(e){} }
+function saveOrder(){ custom=fullKeys.slice(); }
 function slotAt(px,py){ if(!G) return 0; const r=Math.max(0,Math.min(G.rows-1,Math.floor((py-G.top)/G.ch))), nr=(r<G.rows-1?G.cols:G.N-G.cols*(G.rows-1));
   const c=Math.max(0,Math.min(nr-1,Math.floor((px-20)/(G.aw/nr)))); return Math.max(0,Math.min(G.N-1,r*G.cols+c)); }
 function moveKey(key,idx){ const cur=G.keys.indexOf(key); if(cur<0||cur===idx) return false;
@@ -236,14 +238,16 @@ function dragify(el,note){
     ox=sx-el.offsetLeft; oy=sy-el.offsetTop; on=false; note.setPointerCapture(id); el.style.zIndex=++zTop; });
   note.addEventListener('pointermove',e=>{ if(e.pointerId!==id) return;
     if(!on){ if(Math.hypot(e.clientX-sx,e.clientY-sy)<6) return; on=true; el.classList.add('drag'); el.style.animation='none';
-      snap=fullKeys.slice(); snapVis=G.keys.slice(); tgt=snapVis.indexOf(el.dataset.key); }
+      snap=fullKeys.slice(); snapVis=G.keys.slice(); tgt=snapVis.indexOf(el.dataset.key); dragging=true; }
     el.style.left=(e.clientX-ox)+'px'; el.style.top=(e.clientY-oy)+'px';
     const w=note.offsetWidth, hh=note.offsetHeight, idx=slotAt(e.clientX-ox+w/2, e.clientY-oy+hh/2);
     if(idx!==tgt){ tgt=idx; const key=el.dataset.key, other=snapVis[idx], fk=snap.slice();
       if(other && other!==key){ const i=fk.indexOf(key), j=fk.indexOf(other); fk[i]=other; fk[j]=key; }
       fullKeys=fk; custom=fk; layout(true); } });
   const end=e=>{ if(e.pointerId!==id) return; id=null; if(!on) return; on=false; justDragged=true; setTimeout(()=>justDragged=false,80);
-    el.classList.remove('drag'); saveOrder(); layout(true); };
+    el.classList.remove('drag'); dragging=false; const key=el.dataset.key, other=snapVis[tgt];
+    if(other && other!==key){ saveOrder(); layout(true); apiOrder({action:'swap',a:key,b:other,base:snap}); }
+    else { if(srvOrder) custom=srvOrder.slice(); layout(true); } };
   note.addEventListener('pointerup',end); note.addEventListener('pointercancel',end);
 }
 function zoom(n){ const z=$('zoom'), big=z.querySelector('.big'); big.style.setProperty('--c',n.kind.c);
@@ -256,10 +260,13 @@ document.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{ const k=ch.datas
 let rt; addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>layout(true),200);});
 let busy=false, lastLoad=0;
 function load(){ if(busy) return; busy=true; lastLoad=Date.now();
-  apiList().then(list=>{ busy=false; data=list; layout(false); }).catch(()=>{ busy=false; }); }
+  const ov0=srvOv; apiList().then(list=>{ busy=false; data=list; layout(srvOv!==ov0); }).catch(()=>{ busy=false; }); }
 load();
 setInterval(()=>{ if(document.hidden) return; const wall=$('v2').classList.contains('on');
   if(Date.now()-lastLoad >= (wall?3000:30000)) load(); },1000);
+/* 교수용: 주소 끝에 ?admin 을 붙이면 R 키로 처음 배치로 되돌리기 */
+if(/[?&]admin\b/.test(location.search)) addEventListener('keydown',e=>{ if(e.target.matches('input,textarea')) return;
+  if((e.key==='r'||e.key==='R') && confirm('모든 화면의 카드 배치를 처음 상태로 되돌릴까요?')) apiOrder({action:'reset'}); });
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(); });
 </script>
 </body>
